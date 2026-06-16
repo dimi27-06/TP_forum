@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Feed - Forum chasse et peche</title>
+  <link rel="stylesheet" href="/assets/styles.css">
+</head>
+<body data-page="forum">
+  <div class="shell">
+    <header class="topbar">
+      <div class="brand">
+        <div class="brand-mark">F</div>
+        <div>
+          <div class="brand-title">Forum chasse et peche</div>
+          <div class="brand-subtitle" data-welcome>Mode invite</div>
+        </div>
+      </div>
+      <div class="search">
+        <input type="search" placeholder="Chercher un sujet, un spot, un leurre...">
+      </div>
+      <div class="page-actions">
+        <span class="chip" data-session-chip>Mode invite</span>
+        <a class="btn ghost hidden" data-register-link href="/register">S'inscrire</a>
+        <a class="btn ghost hidden" data-login-link href="/login">Connexion</a>
+        <button class="btn ghost hidden" data-logout-link type="button">Deconnexion</button>
+      </div>
+    </header>
+
+    <div class="banner" data-guest-banner>
+      <h3>Tu es en mode invite</h3>
+      <p>Tu peux lire le feed. Pour creer un message ou repondre, passe en connexion.</p>
+      <div class="actions">
+        <a class="btn primary" href="/login">Se connecter</a>
+        <button class="btn" data-guest-button type="button">Rester en invite</button>
+      </div>
+    </div>
+
+    <div class="grid">
+      <main>
+        <section class="composer" data-composer aria-hidden="true">
+          <div class="feed-header">
+            <div>
+              <span class="badge">Nouveau message</span>
+              <h2>Publier un sujet</h2>
+            </div>
+            <span class="notice" data-compose-status></span>
+          </div>
+
+          <form class="form-grid" data-create-topic-form>
+            <div class="field">
+              <label for="titre">Titre</label>
+              <input id="titre" name="titre" placeholder="Ex: Quel montage pour la truite ?" required>
+            </div>
+            <div class="field">
+              <label for="categorie_id">Categorie</label>
+              <select id="categorie_id" name="categorie_id" data-category-select required></select>
+            </div>
+            <div class="field">
+              <label for="description">Description courte</label>
+              <input id="description" name="description" placeholder="Resume du sujet">
+            </div>
+            <div class="field">
+              <label for="contenu">Message</label>
+              <textarea id="contenu" name="contenu" placeholder="Ecris le contenu de ton message..." required></textarea>
+            </div>
+            <div class="row">
+              <button class="btn primary" type="submit">Publier le message</button>
+              <a class="btn" href="/forum?mode=guest">Visualiser en invite</a>
+            </div>
+          </form>
+        </section>
+
+        <section class="panel">
+          <div class="feed-header">
+            <div>
+              <span class="badge">Feed</span>
+              <h2>Dernieres discussions</h2>
+            </div>
+            <span class="notice">Messages recents du forum</span>
+          </div>
+          <div data-topics></div>
+        </section>
+      </main>
+
+      <aside class="sidebar">
+        <h3>Categories</h3>
+        <ul class="list" data-categories></ul>
+        <div class="banner">
+          <h3>Etat du forum</h3>
+          <p>Le feed est deja pose. La prochaine etape sera d ajouter les vraies reponses en fil, les reactions et la moderation.</p>
+        </div>
+      </aside>
+    </div>
+  </div>
+  <script src="/assets/app.js"></script>
+</body>
+</html>
