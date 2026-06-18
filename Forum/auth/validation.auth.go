@@ -1,49 +1,38 @@
 package auth
 
 import (
-	"errors"
-	"fmt"
-
-	"github.com/golang-jwt/jwt/v5"
+	"errors"  // pour renvoyer un message quand le mot de passe ne convient pas
+	"unicode" // pour examiner chaque caractère (majuscule ? chiffre ? etc.)
 )
 
-// ValidateToken verifie un JWT et retourne ses informations si le token est valide.
-func ValidateToken(tokenString string) (*Claims, error) {
-	// Claims recevra les donnees decodees depuis le token.
-	claims := &Claims{}
-
-	// ParseWithClaims analyse le token, verifie sa signature et remplit claims.
-	token, err := jwt.ParseWithClaims(
-		tokenString,
-		claims,
-		func(token *jwt.Token) (interface{}, error) {
-			// On refuse tout algorithme different de HS256 pour eviter les signatures inattendues.
-			if token.Method != jwt.SigningMethodHS256 {
-				return nil, fmt.Errorf(
-					"unexpected signing method: %v",
-					token.Header["alg"],
-				)
-			}
-			// Cette cle doit etre la meme que celle utilisee pour signer le token.
-			return jwtSecretBytes(), nil
-		},
-		// Ces options garantissent que le token vient de l'API attendue
-		// et qu'il est destine au bon client.
-		jwt.WithIssuer("product-api"),
-		jwt.WithAudience("product-front"),
-		jwt.WithValidMethods([]string{jwt.SigningMethodHS256.Alg()}),
-	)
-
-	// Une erreur ici signifie que le token est mal forme, expire ou invalide.
-	if err != nil {
-		return nil, err
+// ValidatePassword vérifie qu'un mot de passe est assez solide.
+// Si tout va bien elle renvoie "nil" (aucune erreur).
+// Sinon elle renvoie un message expliquant ce qui ne va pas.
+func ValidatePassword(password string) error {
+	// Règle 1 : au moins 12 caractères.
+	if len(password) < 12 {
+		return errors.New("Le mot de passe doit contenir au moins 12 caractères")
 	}
-
-	// Par securite, on verifie aussi le statut final du token parse.
-	if !token.Valid {
-		return nil, errors.New("invalid token")
+	// On va parcourir le mot de passe lettre par lettre pour vérifier 2 choses.
+	var hasUpper, hasSpecial bool
+	for _, c := range password {
+		// Y a-t-il au moins une majuscule ?
+		if unicode.IsUpper(c) {
+			hasUpper = true
+		}
+		// Un caractère spécial = ni une lettre, ni un chiffre (ex: ! ou @).
+		if !unicode.IsLetter(c) && !unicode.IsDigit(c) {
+			hasSpecial = true
+		}
 	}
-
-	// Le token est valide : on retourne les claims utilisables par l'application.
-	return claims, nil
+	// Règle 2 : il faut une majuscule.
+	if !hasUpper {
+		return errors.New("Le mot de passe doit contenir au moins une majuscule")
+	}
+	// Règle 3 : il faut un caractère spécial.
+	if !hasSpecial {
+		return errors.New("Le mot de passe doit contenir au moins un caractère spécial")
+	}
+	// Tout est bon, le mot de passe est accepté.
+	return nil
 }
