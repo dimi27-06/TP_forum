@@ -1,0 +1,187 @@
+{{template "layout.html" .}}
+{{define "content"}}
+
+{{/* En-tête du fil */}}
+{{/* Affiche le titre du sujet, son auteur, ses tags et le message d'origine. */}}
+<div class="thread-header-box">
+    <div class="thread-header-top">
+         {{.Thread.Title}}
+        {{if eq .Thread.Status "closed"}} <span style="font-size:11px;font-weight:normal">[Fermé]</span>{{end}}
+    </div>
+    <div class="thread-header-body">
+        <div class="thread-meta">
+            Par <strong>{{.Thread.Author}}</strong>
+            &nbsp;|&nbsp; {{.Thread.CreatedAt.Format "02/01/2006 à 15:04"}}
+            &nbsp;|&nbsp; {{.Thread.MsgCount}} réponse(s)
+            &nbsp;|&nbsp;
+            {{range .Thread.Tags}}<a href="/threads?tag={{.Name}}" class="tag-small">{{.Name}}</a> {{end}}
+        </div>
+        <div class="thread-content">{{.Thread.Content}}</div>
+        {{if .Thread.Tags}}
+        <div class="thread-tags-bottom" style="margin-top:12px">
+            <span style="font-size:12px;font-weight:600;color:#666">Tags du fil :</span>
+            <div style="margin-top:6px">
+                {{range .Thread.Tags}}
+                <a href="/threads?tag={{.Name}}" class="tag-small">{{.Name}}</a>
+                {{end}}
+            </div>
+        </div>
+        {{end}}
+    </div>
+    <div class="thread-footer">
+        {{/* Boutons Modifier / Supprimer : visibles seulement pour l'auteur du fil OU un admin */}}
+        {{if .Claims}}
+        {{if or (eq .Claims.UserID .Thread.UserID) (eq .Claims.Role "admin")}}
+        <a href="/threads/{{.Thread.ID}}/edit" class="btn btn-secondary btn-sm">Modifier</a>
+        <form action="/threads/{{.Thread.ID}}/delete" method="POST" style="display:inline"
+              onsubmit="return confirm('Supprimer ce fil et tous ses messages ?')">
+            <button type="submit" class="btn btn-danger btn-sm">Supprimer</button>
+        </form>
+        {{end}}
+        {{/* Outil réservé aux admins : changer le statut du fil (ouvert/fermé/archivé) */}}
+        {{if eq .Claims.Role "admin"}}
+        <form action="/admin/threads/{{.Thread.ID}}/status" method="POST" style="display:inline">
+            <select name="status" style="font-size:11px;padding:2px 4px">
+                <option value="open"     {{if eq .Thread.Status "open"}}selected{{end}}>Ouvert</option>
+                <option value="closed"   {{if eq .Thread.Status "closed"}}selected{{end}}>Fermé</option>
+                <option value="archived" {{if eq .Thread.Status "archived"}}selected{{end}}>Archivé</option>
+            </select>
+            <button type="submit" class="btn btn-secondary btn-sm">Changer statut</button>
+        </form>
+        {{end}}
+        {{end}}
+        <a href="/threads" class="btn btn-secondary btn-sm">Retour à la liste</a>
+    </div>
+</div>
+
+{{/* Barre outils messages */}}
+{{/* Permet de choisir le tri des réponses et combien en afficher. onchange="this.form.submit()" envoie le formulaire dès qu'on change un choix. */}}
+<div class="messages-section">
+    <div class="messages-toolbar">
+        <span>{{.Meta.Total}} message(s)</span>
+        <form method="GET" action="/threads/{{.Thread.ID}}" style="display:inline">
+            Tri :
+            <select name="sort" onchange="this.form.submit()" style="font-size:11px">
+                <option value="recent"  {{if eq .Sort "recent"}}selected{{end}}>Plus récents</option>
+                <option value="oldest"  {{if eq .Sort "oldest"}}selected{{end}}>Plus anciens</option>
+                <option value="popular" {{if eq .Sort "popular"}}selected{{end}}>Popularité</option>
+            </select>
+            &nbsp;Afficher :
+            <select name="limit" onchange="this.form.submit()" style="font-size:11px">
+                <option value="10" {{if eq .Limit 10}}selected{{end}}>10</option>
+                <option value="20" {{if eq .Limit 20}}selected{{end}}>20</option>
+                <option value="30" {{if eq .Limit 30}}selected{{end}}>30</option>
+                <option value="0"  {{if eq .Limit 0}}selected{{end}}>Tout</option>
+            </select>
+            <input type="hidden" name="page" value="1">
+        </form>
+    </div>
+
+    {{/* Messages */}}
+    {{/* On affiche chaque réponse du fil, une par une */}}
+    {{range .Messages}}
+    <table class="msg-table">
+        <tr class="message-row">
+            <td class="message-author-col">
+                {{/* substr .Author 0 1 = la 1ère lettre du pseudo, pour faire un avatar simple */}}
+                <div class="author-avatar">{{substr .Author 0 1}}</div>
+                <div class="author-name">{{.Author}}</div>
+                <span class="author-role">Membre</span>
+            </td>
+            <td class="message-body">
+                <div class="message-date">
+                    Posté le {{.CreatedAt.Format "02/01/2006 à 15:04"}}
+                    {{/* Si la date de modif est différente de la date de création, c'est qu'il a été modifié */}}
+                    {{if ne .CreatedAt .UpdatedAt}}<em>(modifié)</em>{{end}}
+                    &nbsp;|&nbsp; #{{.ID}}
+                </div>
+                <div class="message-content">{{.Content}}</div>
+            </td>
+        </tr>
+    </table>
+    <div class="message-footer-row">
+        {{/* Zone des réactions (like / dislike). data-msg-id sert au JavaScript pour savoir quel message mettre à jour. */}}
+        <div class="reactions" data-msg-id="{{.ID}}">
+            {{/* $.Claims (avec le $) car on est dans un range : il faut remonter aux données globales */}}
+            {{if $.Claims}}
+            {{/* La classe "active" met le bouton en surbrillance si l'utilisateur a déjà cliqué dessus */}}
+            <button class="react-btn {{if eq .UserReaction "like"}}active{{end}}"
+                    data-msg-id="{{.ID}}" data-type="like" type="button"
+                    onclick="react(this.dataset.msgId, this.dataset.type)">
+                👍 Like <span class="likes-count">{{.Likes}}</span>
+            </button>
+            <button class="react-btn {{if eq .UserReaction "dislike"}}active{{end}}"
+                    data-msg-id="{{.ID}}" data-type="dislike" type="button"
+                    onclick="react(this.dataset.msgId, this.dataset.type)">
+                👎 Dislike <span class="dislikes-count">{{.Dislikes}}</span>
+            </button>
+            <span class="score-txt">Score : <span class="score-val">{{.Score}}</span></span>
+            {{else}}
+            {{/* Visiteur non connecté : on montre les chiffres mais sans boutons cliquables */}}
+            👍 {{.Likes}} &nbsp; 👎 {{.Dislikes}} &nbsp; Score : {{.Score}}
+            {{end}}
+        </div>
+        <div>
+            {{/* Modifier / Supprimer un message : seulement pour son auteur ou un admin */}}
+            {{if $.Claims}}
+            {{if or (eq $.Claims.UserID .UserID) (eq $.Claims.Role "admin")}}
+            <a href="/messages/{{.ID}}/edit" class="btn btn-secondary btn-sm">Modifier</a>
+            <form action="/messages/{{.ID}}/delete" method="POST" style="display:inline"
+                  onsubmit="return confirm('Supprimer ce message ?')">
+                <button type="submit" class="btn btn-danger btn-sm">Supprimer</button>
+            </form>
+            {{end}}
+            {{end}}
+        </div>
+    </div>
+    {{else}}
+    {{/* S'affiche quand le fil n'a encore aucune réponse */}}
+    <div class="empty-msg">Aucun message pour le moment. Soyez le premier à répondre !</div>
+    {{end}}
+
+    {{/* Pagination messages */}}
+    {{if gt .Meta.TotalPages 1}}
+    <div class="pagination">
+        {{if .Meta.HasPrev}}
+        <a href="?page={{sub .Meta.Page 1}}&limit={{.Limit}}&sort={{.Sort}}" class="page-link">&laquo; Préc.</a>
+        {{end}}
+        {{/* On mémorise tri/limite/meta dans des variables pour les réutiliser dans la boucle des pages */}}
+        {{$sort := .Sort}}{{$limit := .Limit}}{{$meta := .Meta}}
+        {{range seq .Meta.TotalPages}}
+        <a href="?page={{.}}&limit={{$limit}}&sort={{$sort}}"
+           class="page-link {{if eq . $meta.Page}}current{{end}}">{{.}}</a>
+        {{end}}
+        {{if .Meta.HasNext}}
+        <a href="?page={{add .Meta.Page 1}}&limit={{.Limit}}&sort={{.Sort}}" class="page-link">Suiv. &raquo;</a>
+        {{end}}
+    </div>
+    {{end}}
+</div>
+
+{{/* Zone de réponse */}}
+{{/* On ne montre le formulaire de réponse que si on est connecté ET que le fil est ouvert. */}}
+{{if .Claims}}
+    {{if eq .Thread.Status "open"}}
+    <div class="reply-box">
+        <div class="reply-box-header">Poster une réponse</div>
+        <form action="/messages" method="POST">
+            {{/* champ caché : indique au serveur dans quel fil poster */}}
+            <input type="hidden" name="thread_id" value="{{.Thread.ID}}">
+            <div class="reply-box-body">
+                <textarea name="content" placeholder="Votre message..." required></textarea>
+            </div>
+            <div class="reply-box-footer">
+                <button type="submit" class="btn btn-primary">Envoyer</button>
+            </div>
+        </form>
+    </div>
+    {{else}}
+    <div class="notice-box"> Ce fil est fermé, vous ne pouvez plus y répondre.</div>
+    {{end}}
+{{else}}
+<div class="notice-box">
+    <a href="/login">Connectez-vous</a> pour participer à la discussion.
+</div>
+{{end}}
+
+{{end}}
