@@ -2,36 +2,24 @@ package config
 
 import (
 	"database/sql"
-	"fmt"
 	"log"
 
 	_ "github.com/go-sql-driver/mysql"
 )
 
+// InitDB ouvre la base MySQL et vérifie qu'elle répond bien.
 func InitDB() *sql.DB {
-	// Recuperation des parametres lies a la base de donnees.
-	user := GetRequiredEnv("DB_USER")
-	pwd := GetEnvWithDefault("DB_PWD", "")
-	host := GetRequiredEnv("DB_HOST")
-	port := GetRequiredEnv("DB_PORT")
-	name := GetRequiredEnv("DB_NAME")
+	dsn := GetEnv("DB_DSN", "root:password@tcp(127.0.0.1:3306)/forum?parseTime=true&charset=utf8mb4&collation=utf8mb4_unicode_ci&loc=Local")
 
-	// Preparation de la chaine de connexion a la base de donnees.
-	connectionString := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s", user, pwd, host, port, name)
-
-	// Mise en place de la connexion.
-	dbContext, dbContextErr := sql.Open("mysql", connectionString)
-	if dbContextErr != nil {
-		log.Fatalf("Erreur connection base de donnees - Erreur : \n\t %s", dbContextErr.Error())
+	db, err := sql.Open("mysql", dsn)
+	if err != nil {
+		log.Fatalf("Erreur ouverture base de données : %s", err)
 	}
 
-	// Test de ping la base de donnees.
-	pingErr := dbContext.Ping()
-	if pingErr != nil {
-		dbContext.Close()
-		log.Fatalf("Erreur ping base de donnees - Erreur : \n\t %s", pingErr.Error())
+	if err := db.Ping(); err != nil {
+		log.Fatalf("Erreur connexion base de données : %s", err)
 	}
 
-	log.Printf("BDD - Connexion reussie")
-	return dbContext
+	log.Println("Base de données connectée via MySQL")
+	return db
 }
