@@ -1,126 +1,88 @@
+// Le package "services" contient les règles métier : les vérifications et
+// les décisions (a-t-on le droit ? les données sont-elles valides ?).
+// Les services se placent entre les controllers et les repositories.
 package services
 
 import (
-	"crypto/rand"
-	"crypto/sha256"
-	"encoding/hex"
 	"errors"
-	"fmt"
+	"forum/auth"
+	"forum/dto"
+	"forum/models"
+	"forum/repositories"
 	"strings"
-
-	"exemple_api/auth"
-	"exemple_api/dto"
-	"exemple_api/models"
-	"exemple_api/repositories"
 )
 
+// AuthService s'occupe de l'inscription et de la connexion des membres.
 type AuthService struct {
-	userRepository *repositories.UserRepository
+	userRepo *repositories.UserRepository
 }
 
-func InitAuthService(userRepository *repositories.UserRepository) *AuthService {
-	return &AuthService{userRepository: userRepository}
+func InitAuthService(userRepo *repositories.UserRepository) *AuthService {
+	return &AuthService{userRepo: userRepo}
 }
 
-func (s *AuthService) Register(data dto.RegisterRequestDto) (*dto.LoginResponseDto, error) {
-	nom := strings.TrimSpace(data.Nom)
-	email := strings.TrimSpace(strings.ToLower(data.Email))
-	password := strings.TrimSpace(data.Password)
+// Register crée un nouveau compte après avoir vérifié que tout est correct.
+func (s *AuthService) Register(req dto.RegisterRequest) error {
+	// On nettoie les entrées : on enlève les espaces inutiles et on met l'email en minuscules.
+	req.Username = strings.TrimSpace(req.Username)
+	req.Email = strings.TrimSpace(strings.ToLower(req.Email))
 
-	if nom == "" {
-		return nil, errors.New("le nom est requis")
+	// Vérification 1 : aucun champ ne doit être vide.
+	if req.Username == "" || req.Email == "" || req.Password == "" {
+		return errors.New("Tous les champs sont obligatoires")
 	}
-	if email == "" {
-		return nil, errors.New("l'email est requis")
+	// Vérification 2 : le mot de passe et sa confirmation doivent être identiques.
+	if req.Password != req.Confirm {
+		return errors.New("Les mots de passe ne correspondent pas")
 	}
-	if password == "" {
-		return nil, errors.New("le mot de passe est requis")
+	// Vérification 3 : le mot de passe doit être assez solide (voir auth/validation).
+	if err := auth.ValidatePassword(req.Password); err != nil {
+		return err
 	}
-
-	exists, err := s.userRepository.ExistsByEmailOrName(email, nom)
-	if err != nil {
-		return nil, err
+	// Vérification 4 : le pseudo ne doit pas déjà exister.
+	if s.userRepo.ExistsByUsername(req.Username) {
+		return errors.New("Ce nom d'utilisateur est déjà pris")
 	}
-	if exists {
-		return nil, errors.New("ce compte existe deja")
-	}
-
-	salt, err := generateSalt(16)
-	if err != nil {
-		return nil, err
-	}
-
-	user := &models.ForumUser{
-		Nom:              nom,
-		Email:            email,
-		PasswordSalt:     salt,
-		PasswordHash:     hashPassword(password, salt),
-		Bio:              strings.TrimSpace(data.Bio),
-		Localisation:     strings.TrimSpace(data.Localisation),
-		Role:             "user",
-		PointsReputation: 0,
-		Actif:            true,
+	// Vérification 5 : l'email ne doit pas déjà exister.
+	if s.userRepo.ExistsByEmail(req.Email) {
+		return errors.New("Cette adresse email est déjà utilisée")
 	}
 
-	if err := s.userRepository.CreateUser(user); err != nil {
-		return nil, err
-	}
-
-	token, err := auth.GenerateToken(fmt.Sprintf("%d", user.ID), user.Role)
-	if err != nil {
-		return nil, err
-	}
-
-	_ = s.userRepository.UpdateLastLogin(user.ID)
-
-	return &dto.LoginResponseDto{
-		Type:        "Bearer",
-		AccessToken: token,
-		ExpiresIn:   900,
-	}, nil
+	// Tout est bon : on hache le mot de passe avant de l'enregistrer (jamais en clair !).
+	hashed := auth.HashPassword(req.Password)
+	_, err := s.userRepo.Create(req.Username, req.Email, hashed)
+	return err
 }
 
-func (s *AuthService) Login(data dto.LoginRequestDto) (*dto.LoginResponseDto, error) {
-	identifier := strings.TrimSpace(strings.ToLower(data.Username))
-	password := strings.TrimSpace(data.Password)
-
-	if identifier == "" || password == "" {
-		return nil, errors.New("identifiants invalides")
+// Login vérifie les identifiants et renvoie l'utilisateur + un jeton de connexion.
+func (s *AuthService) Login(req dto.LoginRequest) (*models.User, string, error) {
+	if req.Identifier == "" || req.Password == "" {
+		return nil, "", errors.New("Identifiant et mot de passe requis")
 	}
 
-	user, err := s.userRepository.GetUserByIdentifier(identifier)
+	// On retrouve l'utilisateur par son pseudo OU son email.
+	user, err := s.userRepo.FindByIdentifier(req.Identifier)
+	if err != nil || user == nil {
+		// Message volontairement vague : on ne dit pas si c'est l'identifiant ou le mot de passe
+		// qui est faux, pour ne pas aider un éventuel pirate.
+		return nil, "", errors.New("Identifiant ou mot de passe incorrect")
+	}
+
+	// On compare le mot de passe tapé avec celui enregistré (en les hachant tous les deux).
+	if !auth.CheckPassword(req.Password, user.Password) {
+		return nil, "", errors.New("Identifiant ou mot de passe incorrect")
+	}
+
+	// Un compte banni ne peut pas se connecter.
+	if user.Banned {
+		return nil, "", errors.New("Votre compte a été banni de la plateforme")
+	}
+
+	// Identifiants corrects : on fabrique le jeton qui servira de "carte d'identité".
+	token, err := auth.GenerateToken(user.ID, user.Username, user.Role, user.Banned)
 	if err != nil {
-		return nil, errors.New("identifiants invalides")
+		return nil, "", errors.New("Erreur lors de la génération du token")
 	}
 
-	expectedHash := hashPassword(password, user.PasswordSalt)
-	if expectedHash != user.PasswordHash {
-		return nil, errors.New("identifiants invalides")
-	}
-
-	token, err := auth.GenerateToken(fmt.Sprintf("%d", user.ID), user.Role)
-	if err != nil {
-		return nil, err
-	}
-
-	_ = s.userRepository.UpdateLastLogin(user.ID)
-
-	return &dto.LoginResponseDto{
-		Type:        "Bearer",
-		AccessToken: token,
-		ExpiresIn:   900,
-	}, nil
-}
-
-func generateSalt(length int) (string, error) {
-	buffer := make([]byte, length)
-	if _, err := rand.Read(buffer); err != nil {
-		return "", err
-	}
-	return hex.EncodeToString(buffer), nil
-}
-
-func hashPassword(password string, salt string) string {
-	sum := sha256.Sum256([]byte(salt + ":" + password))
-	return hex.EncodeToString(sum[:])
+	return user, token, nil
 }
