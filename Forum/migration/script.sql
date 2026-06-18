@@ -1,205 +1,135 @@
--- Suppression et recréation de la base
-DROP DATABASE IF EXISTS forum_chasse_peche;
-CREATE DATABASE forum_chasse_peche
-    DEFAULT CHARACTER SET utf8mb4
-    DEFAULT COLLATE utf8mb4_unicode_ci;
+USE forum;
 
-USE forum_chasse_peche;
+SET FOREIGN_KEY_CHECKS = 0;
+TRUNCATE TABLE reactions;
+TRUNCATE TABLE messages;
+TRUNCATE TABLE thread_tags;
+TRUNCATE TABLE threads;
+TRUNCATE TABLE tags;
+TRUNCATE TABLE users;
+SET FOREIGN_KEY_CHECKS = 1;
 
--- Table des utilisateurs
-CREATE TABLE utilisateurs (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    nom VARCHAR(100) NOT NULL,
-    email VARCHAR(100) UNIQUE NOT NULL,
-    mot_de_passe VARCHAR(255) NOT NULL,
-    bio TEXT,
-    avatar VARCHAR(255),
-    localisation VARCHAR(100),
-    role ENUM('user', 'moderateur', 'admin') DEFAULT 'user',
-    points_reputation INT DEFAULT 0,
-    actif BOOLEAN DEFAULT TRUE,
-    date_creation TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    date_derniere_connexion TIMESTAMP NULL
-) ENGINE=InnoDB;
+INSERT INTO users (username, email, password, role) VALUES
+('admin',             'admin@forum-cp.fr',             '68e96d19eaf2cb82460285ea8ccc6ae8578fbbd2a9730e936ac936b1cfded8ec62e2126c4552d12833b28ecf47b57e7577e0321fbf9b8f9745f987e03e3f7d7a', 'admin'),
+('RenardRouge',       'renard@forum-cp.fr',            '68e96d19eaf2cb82460285ea8ccc6ae8578fbbd2a9730e936ac936b1cfded8ec62e2126c4552d12833b28ecf47b57e7577e0321fbf9b8f9745f987e03e3f7d7a', 'user'),
+('PecheurDuSud',      'pecheur@forum-cp.fr',           '68e96d19eaf2cb82460285ea8ccc6ae8578fbbd2a9730e936ac936b1cfded8ec62e2126c4552d12833b28ecf47b57e7577e0321fbf9b8f9745f987e03e3f7d7a', 'user'),
+('GrandBraque',       'braque@forum-cp.fr',            '68e96d19eaf2cb82460285ea8ccc6ae8578fbbd2a9730e936ac936b1cfded8ec62e2126c4552d12833b28ecf47b57e7577e0321fbf9b8f9745f987e03e3f7d7a', 'user'),
+('BecasseBleue',      'becasse@forum-cp.fr',           '68e96d19eaf2cb82460285ea8ccc6ae8578fbbd2a9730e936ac936b1cfded8ec62e2126c4552d12833b28ecf47b57e7577e0321fbf9b8f9745f987e03e3f7d7a', 'user'),
+('VieuxBaroudeur',    'baroudeur@forum-cp.fr',         '68e96d19eaf2cb82460285ea8ccc6ae8578fbbd2a9730e936ac936b1cfded8ec62e2126c4552d12833b28ecf47b57e7577e0321fbf9b8f9745f987e03e3f7d7a', 'user'),
+('LoupDesBois',       'loupdesbois@forum-cp.fr',       '68e96d19eaf2cb82460285ea8ccc6ae8578fbbd2a9730e936ac936b1cfded8ec62e2126c4552d12833b28ecf47b57e7577e0321fbf9b8f9745f987e03e3f7d7a', 'user'),
+('TruiteSilencieuse', 'truite@forum-cp.fr',            '68e96d19eaf2cb82460285ea8ccc6ae8578fbbd2a9730e936ac936b1cfded8ec62e2126c4552d12833b28ecf47b57e7577e0321fbf9b8f9745f987e03e3f7d7a', 'user'),
+('gamextreize',       'gamextreize@forum-cp.fr',       '68e96d19eaf2cb82460285ea8ccc6ae8578fbbd2a9730e936ac936b1cfded8ec62e2126c4552d12833b28ecf47b57e7577e0321fbf9b8f9745f987e03e3f7d7a', 'user'),
+('mortadon',          'mortadon@forum-cp.fr',          '68e96d19eaf2cb82460285ea8ccc6ae8578fbbd2a9730e936ac936b1cfded8ec62e2126c4552d12833b28ecf47b57e7577e0321fbf9b8f9745f987e03e3f7d7a', 'user'),
+('pixelnomade',       'pixelnomade@forum-cp.fr',       '68e96d19eaf2cb82460285ea8ccc6ae8578fbbd2a9730e936ac936b1cfded8ec62e2126c4552d12833b28ecf47b57e7577e0321fbf9b8f9745f987e03e3f7d7a', 'user'),
+('noctifer',          'noctifer@forum-cp.fr',          '68e96d19eaf2cb82460285ea8ccc6ae8578fbbd2a9730e936ac936b1cfded8ec62e2126c4552d12833b28ecf47b57e7577e0321fbf9b8f9745f987e03e3f7d7a', 'user'),
+('atlasquartz',       'atlasquartz@forum-cp.fr',       '68e96d19eaf2cb82460285ea8ccc6ae8578fbbd2a9730e936ac936b1cfded8ec62e2126c4552d12833b28ecf47b57e7577e0321fbf9b8f9745f987e03e3f7d7a', 'user'),
+('luneverre',         'luneverre@forum-cp.fr',         '68e96d19eaf2cb82460285ea8ccc6ae8578fbbd2a9730e936ac936b1cfded8ec62e2126c4552d12833b28ecf47b57e7577e0321fbf9b8f9745f987e03e3f7d7a', 'user'),
+('cuivre42',          'cuivre42@forum-cp.fr',          '68e96d19eaf2cb82460285ea8ccc6ae8578fbbd2a9730e936ac936b1cfded8ec62e2126c4552d12833b28ecf47b57e7577e0321fbf9b8f9745f987e03e3f7d7a', 'user'),
+('seriforage',        'seriforage@forum-cp.fr',        '68e96d19eaf2cb82460285ea8ccc6ae8578fbbd2a9730e936ac936b1cfded8ec62e2126c4552d12833b28ecf47b57e7577e0321fbf9b8f9745f987e03e3f7d7a', 'user');
 
--- Table des catégories du forum
-CREATE TABLE categories (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    nom VARCHAR(100) NOT NULL UNIQUE,
-    description TEXT,
-    slug VARCHAR(100) NOT NULL UNIQUE,
-    icon VARCHAR(50),
-    couleur VARCHAR(7),
-    ordre INT DEFAULT 0,
-    date_creation TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-) ENGINE=InnoDB;
+INSERT INTO tags (name) VALUES
+('Chasse'), ('Peche'), ('Materiel'), ('Reglementation'),
+('Gibier'), ('Poissons'), ('Conseils'), ('Meteo'),
+('Sanglier'), ('Cerf'), ('Faisan'), ('Carpe'), ('Truite'), ('Brochet');
 
--- Table des topics (fils de discussion)
-CREATE TABLE topics (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    titre VARCHAR(255) NOT NULL,
-    slug VARCHAR(255) NOT NULL UNIQUE,
-    description VARCHAR(500),
-    contenu LONGTEXT NOT NULL,
-    utilisateur_id INT NOT NULL,
-    categorie_id INT NOT NULL,
-    vues INT DEFAULT 0,
-    nombre_reponses INT DEFAULT 0,
-    nombre_likes INT DEFAULT 0,
-    epingle BOOLEAN DEFAULT FALSE,
-    ferme BOOLEAN DEFAULT FALSE,
-    date_creation TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    date_modification TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    date_derniere_reponse TIMESTAMP NULL,
-    
-    INDEX idx_categorie (categorie_id),
-    INDEX idx_utilisateur (utilisateur_id),
-    INDEX idx_date (date_creation DESC),
-    INDEX idx_epingle (epingle),
-    
-    CONSTRAINT fk_topics_utilisateurs
-        FOREIGN KEY (utilisateur_id)
-        REFERENCES utilisateurs(id)
-        ON DELETE CASCADE,
-    
-    CONSTRAINT fk_topics_categories
-        FOREIGN KEY (categorie_id)
-        REFERENCES categories(id)
-        ON DELETE CASCADE
-) ENGINE=InnoDB;
+INSERT INTO threads (title, content, status, user_id) VALUES
+('Meilleurs coins truite en Provence ?',
+ 'Bonjour a tous ! Je cherche de bons coins pour pecher la truite fario dans le Var ou les Alpes-de-Haute-Provence. Quelqu''un a des tuyaux ? Je peche a la mouche principalement.',
+ 'open', 2),
+('Ouverture chasse sanglier 2026 - dates et zones',
+ 'Bonjour, est-ce que quelqu''un a les infos officielles sur les dates d''ouverture du sanglier cette saison dans le Gard et l''Herault ? La prefecture n''a pas encore mis a jour son site.',
+ 'open', 3),
+('Quel materiel pour debuter la peche a la carpe ?',
+ 'Je souhaite me lancer dans la peche a la carpe de nuit. J''ai un budget d''environ 300EUR pour demarrer. Cannes, detecteurs, sacs de couchage... par ou commencer ?',
+ 'open', 4),
+('Chien de chasse : Braque vs Epagneul pour le faisan ?',
+ 'Je dois choisir mon premier chien de chasse pour le faisan et la perdrix. Hesitation entre un Braque Francais et un Epagneul Breton. Vos retours d''experience ?',
+ 'open', 2),
+('Discussion archivee - test admin',
+ 'Ceci est une discussion archivee, invisible des utilisateurs normaux.',
+ 'archived', 1),
+('Quel fusil pour la chasse au canard ?',
+ 'Je cherche un fusil confortable pour les sorties au canard en zone humide. Plutot semi-auto ou superpose ?',
+ 'open', 5),
+('Peche de nuit : quel montage pour la carpe ?',
+ 'J''organise mes premieres nuits au bord de l''eau. Vous conseillez quel montage de base pour la carpe en etang ?',
+ 'open', 6),
+('Poste d''affut sanglier en plaine',
+ 'Je veux installer un poste d''affut en plaine. Vous le placez plutot en lisiere, au passage ou pres des cultures ?',
+ 'open', 7),
+('Quel sac a dos pour une rando de 3 jours ?',
+ 'Je pars en rando longue avec marche et affut occasionnel. Vous conseillez quoi comme volume et confort ?',
+ 'open', 9),
+('Lampe frontale : quelle autonomie viser ?',
+ 'Je cherche une frontale simple pour les sorties matinales. Quelle autonomie minimale vaut le coup ?',
+ 'open', 10),
+('Nettoyage du fusil apres une sortie sous la pluie ?',
+ 'Vous avez une routine simple pour proteger le materiel apres une sortie humide et boueuse ?',
+ 'open', 11),
+('Glaciere souple ou rigide pour le poisson ?',
+ 'Pour le transport du poisson, vous prenez quoi entre souple et rigide ?',
+ 'open', 12),
+('Comment rester discret en affut d''hiver ?',
+ 'Vents, odeurs, bruit : quels sont vos meilleurs reflexes pour un affut vraiment discret ?',
+ 'open', 13),
+('Meilleure paire de bottes pour les marais ?',
+ 'Je cherche des bottes confortables pour terrain gras, eau et longues marches. Des conseils ?',
+ 'open', 14),
+('Premiere sortie a l''aube : quoi preparer la veille ?',
+ 'Je veux etre operationnel tres tot sans rien oublier. Quels indispensables vous preparez la veille ?',
+ 'open', 15),
+('Choisir un traceur GPS pour le terrain',
+ 'Je cherche un traceur GPS simple pour ne pas me perdre en zone boisée. Vos criteres importants ?',
+ 'open', 16);
 
--- Table des réponses (comments)
-CREATE TABLE replies (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    contenu TEXT NOT NULL,
-    utilisateur_id INT NOT NULL,
-    topic_id INT NOT NULL,
-    numero_reponse INT,
-    nombre_likes INT DEFAULT 0,
-    date_creation TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    date_modification TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    
-    INDEX idx_topic (topic_id),
-    INDEX idx_utilisateur (utilisateur_id),
-    INDEX idx_date (date_creation DESC),
-    
-    CONSTRAINT fk_replies_utilisateurs
-        FOREIGN KEY (utilisateur_id)
-        REFERENCES utilisateurs(id)
-        ON DELETE CASCADE,
-    
-    CONSTRAINT fk_replies_topics
-        FOREIGN KEY (topic_id)
-        REFERENCES topics(id)
-        ON DELETE CASCADE
-) ENGINE=InnoDB;
+INSERT INTO thread_tags (thread_id, tag_id) VALUES
+(1, 2), (1, 13), (1, 7),
+(2, 1), (2, 4),  (2, 9),
+(3, 2), (3, 3),  (3, 12),
+(4, 1), (4, 3),  (4, 11),
+(5, 1),
+(6, 1), (6, 3), (6, 4),
+(7, 2), (7, 12), (7, 7),
+(8, 1), (8, 9), (8, 7),
+(9, 3), (9, 7),
+(10, 3), (10, 7), (10, 8),
+(11, 1), (11, 3), (11, 4),
+(12, 2), (12, 3), (12, 7),
+(13, 1), (13, 7), (13, 8),
+(14, 1), (14, 3), (14, 8),
+(15, 1), (15, 3), (15, 7),
+(16, 3), (16, 7), (16, 8);
 
--- Table des likes
-CREATE TABLE likes (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    utilisateur_id INT NOT NULL,
-    topic_id INT NULL,
-    reply_id INT NULL,
-    type_like ENUM('topic', 'reply') NOT NULL,
-    date_creation TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    
-    UNIQUE KEY unique_like (utilisateur_id, topic_id, reply_id),
-    
-    INDEX idx_utilisateur (utilisateur_id),
-    
-    CONSTRAINT fk_likes_utilisateurs
-        FOREIGN KEY (utilisateur_id)
-        REFERENCES utilisateurs(id)
-        ON DELETE CASCADE,
-    
-    CONSTRAINT fk_likes_topics
-        FOREIGN KEY (topic_id)
-        REFERENCES topics(id)
-        ON DELETE CASCADE,
-    
-    CONSTRAINT fk_likes_replies
-        FOREIGN KEY (reply_id)
-        REFERENCES replies(id)
-        ON DELETE CASCADE
-) ENGINE=InnoDB;
-
--- Table des signalements
-CREATE TABLE signalements (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    utilisateur_id INT NOT NULL,
-    topic_id INT NULL,
-    reply_id INT NULL,
-    raison VARCHAR(100) NOT NULL,
-    description TEXT,
-    statut ENUM('en_attente', 'accepte', 'rejete') DEFAULT 'en_attente',
-    date_creation TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    
-    CONSTRAINT fk_signalements_utilisateurs
-        FOREIGN KEY (utilisateur_id)
-        REFERENCES utilisateurs(id)
-        ON DELETE CASCADE,
-    
-    CONSTRAINT fk_signalements_topics
-        FOREIGN KEY (topic_id)
-        REFERENCES topics(id)
-        ON DELETE CASCADE,
-    
-    CONSTRAINT fk_signalements_replies
-        FOREIGN KEY (reply_id)
-        REFERENCES replies(id)
-        ON DELETE CASCADE
-) ENGINE=InnoDB;
-
--- Table des abonnements aux catégories
-CREATE TABLE abonnements (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    utilisateur_id INT NOT NULL,
-    categorie_id INT NOT NULL,
-    date_creation TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    
-    UNIQUE KEY unique_abonnement (utilisateur_id, categorie_id),
-    
-    CONSTRAINT fk_abonnements_utilisateurs
-        FOREIGN KEY (utilisateur_id)
-        REFERENCES utilisateurs(id)
-        ON DELETE CASCADE,
-    
-    CONSTRAINT fk_abonnements_categories
-        FOREIGN KEY (categorie_id)
-        REFERENCES categories(id)
-        ON DELETE CASCADE
-) ENGINE=InnoDB;
-
--- Table des tags
-CREATE TABLE tags (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    nom VARCHAR(50) NOT NULL UNIQUE,
-    slug VARCHAR(50) NOT NULL UNIQUE,
-    date_creation TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-) ENGINE=InnoDB;
-
--- Table de liaison topics_tags
-CREATE TABLE topics_tags (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    topic_id INT NOT NULL,
-    tag_id INT NOT NULL,
-    
-    UNIQUE KEY unique_topic_tag (topic_id, tag_id),
-    
-    CONSTRAINT fk_topics_tags_topics
-        FOREIGN KEY (topic_id)
-        REFERENCES topics(id)
-        ON DELETE CASCADE,
-    
-    CONSTRAINT fk_topics_tags_tags
-        FOREIGN KEY (tag_id)
-        REFERENCES tags(id)
-        ON DELETE CASCADE
-) ENGINE=InnoDB;
-
--- Créer des indices supplémentaires pour les performances
-CREATE INDEX idx_topics_slug ON topics(slug);
-CREATE INDEX idx_topics_vues ON topics(vues DESC);
-CREATE INDEX idx_replies_date_creation ON replies(date_creation DESC);
-CREATE INDEX idx_likes_topic ON likes(topic_id);
-CREATE INDEX idx_likes_reply ON likes(reply_id);
+INSERT INTO messages (content, thread_id, user_id) VALUES
+('La Durance est excellente pour la truite fario au printemps, surtout entre Manosque et Sisteron. Leve-toi tot !', 1, 3),
+('Je confirme pour la Durance. Essaie aussi le Verdon en juin, les truites sont belles mais la concurrence est forte.', 1, 4),
+('Pour le Gard, l''ouverture est fixee au 13 septembre d''apres ce que j''ai vu en mairie. Attends la publication officielle.', 2, 4),
+('Dans l''Herault, ca devrait etre pareil. Certaines communes ont des arretes specifiques pour les zones Natura 2000.', 2, 2),
+('Pour debuter la carpe, commence par 2 cannes Shimano Tribal 12 pieds. Robustes et abordables. Pour les detecteurs, du Fox ou Delkim d''occasion.', 3, 3),
+('Investis d''abord dans un bon sac de couchage 4 saisons, tu ne regretteras pas lors des nuits fraiches en bord d''eau !', 3, 2),
+('J''ai un Epagneul Breton depuis 3 ans, excellent chasseur, tres facile a former. Parfait pour le faisan en plaine.', 4, 3),
+('Le Braque Francais est plus polyvalent si tu chasses aussi le lievre. Mais l''Epagneul est plus vif sur le faisan en taillis.', 4, 4),
+('Archivage utile pour tester les droits admin et la visibilite des contenus fermes.', 5, 1),
+('Oui, ce sujet archive permet de verifier que les utilisateurs normaux ne voient rien de sensible.', 5, 2),
+('Pour le canard, beaucoup preferent le semi-auto pour le confort, mais un superpose bien equilibre reste tres propre.', 6, 5),
+('Si tu chasses souvent en zone humide, pense aussi au poids et a la resistance a la corrosion.', 6, 6),
+('En etang, un montage cheveu simple avec bonbon flottais peut tres bien faire l''affaire pour commencer.', 7, 6),
+('Ajoute un repere de profondeur et reste discret sur les departs, ca change beaucoup la nuit.', 7, 8),
+('En plaine, je privilegie toujours la lisiere et les couloirs de passage. Tu lis mieux les deplacements.', 8, 7),
+('Avec un vent portant, tu peux aussi te placer pres des cultures si tu as un bon angle de tir.', 8, 5),
+('Pour un sac a dos, 35 a 45L suffit souvent si tu restes leger. Au-dela, tu transportes vite du vide.', 9, 9),
+('Si tu comptes bivouaquer, vise plutot 50L avec une vraie ceinture de hanches. Le confort compte plus que le style.', 9, 10),
+('Une frontale de 200 a 300 lumens suffit largement pour preparer le terrain. L''autonomie est souvent plus utile que la puissance.', 10, 11),
+('Je prefere une lampe avec batterie remplaçable, surtout si tu pars longtemps et loin des prises.', 10, 12),
+('Apres la pluie, je dechiffonne, je seche, puis je passe un voile tres fin d''huile avant rangement.', 11, 1),
+('Et pense a ouvrir les parties mobiles pour chasser l''humidite. Une simple lingette microfibre fait deja beaucoup.', 11, 13),
+('Pour le poisson, une glaciere rigide garde mieux la forme, mais la souple prend moins de place dans la voiture.', 12, 14),
+('Si tu ne transportes pas de gros volumes, la souple est souvent plus pratique. Tout depend de la place dispo.', 12, 15),
+('En affut d''hiver, le plus important est de prevoir ton placement avant d''entrer et de limiter les allers-retours.', 13, 16),
+('J''ajoute toujours une couche silencieuse et je surveille surtout le vent. Une erreur d''odeur ruine la sortie.', 13, 9),
+('Pour les bottes de marais, je regarde surtout l''adhérence et la largeur du mollet. Le confort change tout sur la duree.', 14, 10),
+('Je conseille aussi des chaussettes techniques. Une bonne botte peut devenir infernale si le pied glisse dedans.', 14, 11),
+('La veille, je prepare vetements, batterie, eau, couteau, trousse et papiers. Le matin, je veux juste partir.', 15, 12),
+('Exactement. Plus tu simplifie la veille, moins tu oublies quelque chose au moment ou il fait encore nuit.', 15, 13),
+('Pour un traceur GPS, regarde surtout la lisibilite de l''ecran, l''autonomie et la simplicite des menus.', 16, 14),
+('Le plus utile reste souvent une bonne autonomie et une carte lisible hors reseau. Le reste vient apres.', 16, 15);
