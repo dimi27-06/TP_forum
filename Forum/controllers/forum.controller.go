@@ -11,21 +11,19 @@ import (
 	"github.com/gorilla/mux"
 )
 
-// ForumControllers gère les requêtes du forum
+// Gère les requêtes du forum
 type ForumControllers struct {
 	forumService *services.ForumService
 }
 
-// InitForumControllers initialise le controller
+// Initialise le controller
 func InitForumControllers(forumService *services.ForumService) *ForumControllers {
 	return &ForumControllers{
 		forumService: forumService,
 	}
 }
 
-// CATEGORIES
-
-// CreateCategory crée une nouvelle catégorie
+// Crée une nouvelle catégorie
 func (c *ForumControllers) CreateCategory(w http.ResponseWriter, r *http.Request) {
 	var req models.CreateCategoryRequest
 
@@ -43,7 +41,7 @@ func (c *ForumControllers) CreateCategory(w http.ResponseWriter, r *http.Request
 	helper.WriteSuccessResponse(w, http.StatusCreated, category)
 }
 
-// GetAllCategories récupère toutes les catégories
+// Récupère toutes les catégories
 func (c *ForumControllers) GetAllCategories(w http.ResponseWriter, r *http.Request) {
 	categories, err := c.forumService.GetAllCategories()
 	if err != nil {
@@ -54,7 +52,7 @@ func (c *ForumControllers) GetAllCategories(w http.ResponseWriter, r *http.Reque
 	helper.WriteSuccessResponse(w, http.StatusOK, categories)
 }
 
-// GetCategoryByID récupère une catégorie par ID
+// Récupère une catégorie par ID
 func (c *ForumControllers) GetCategoryByID(w http.ResponseWriter, r *http.Request) {
 	id, err := strconv.Atoi(mux.Vars(r)["id"])
 	if err != nil {
@@ -71,9 +69,7 @@ func (c *ForumControllers) GetCategoryByID(w http.ResponseWriter, r *http.Reques
 	helper.WriteSuccessResponse(w, http.StatusOK, category)
 }
 
-// TOPICS
-
-// CreateTopic crée un nouveau topic
+// Crée un nouveau topic
 func (c *ForumControllers) CreateTopic(w http.ResponseWriter, r *http.Request) {
 	userID := r.Header.Get("X-User-ID")
 	if userID == "" {
@@ -102,7 +98,7 @@ func (c *ForumControllers) CreateTopic(w http.ResponseWriter, r *http.Request) {
 	helper.WriteSuccessResponse(w, http.StatusCreated, topic)
 }
 
-// GetAllTopics récupère tous les topics
+// Récupère tous les topics
 func (c *ForumControllers) GetAllTopics(w http.ResponseWriter, r *http.Request) {
 	limit, _ := strconv.Atoi(r.URL.Query().Get("limit"))
 	offset, _ := strconv.Atoi(r.URL.Query().Get("offset"))
@@ -116,7 +112,7 @@ func (c *ForumControllers) GetAllTopics(w http.ResponseWriter, r *http.Request) 
 	helper.WriteSuccessResponse(w, http.StatusOK, topics)
 }
 
-// GetTopicsByCategory récupère les topics d'une catégorie
+// Récupère les topics d'une catégorie
 func (c *ForumControllers) GetTopicsByCategory(w http.ResponseWriter, r *http.Request) {
 	categoryID, err := strconv.Atoi(mux.Vars(r)["categoryId"])
 	if err != nil {
@@ -136,7 +132,7 @@ func (c *ForumControllers) GetTopicsByCategory(w http.ResponseWriter, r *http.Re
 	helper.WriteSuccessResponse(w, http.StatusOK, topics)
 }
 
-// GetTopicByID récupère un topic par ID
+// Récupère un topic par ID
 func (c *ForumControllers) GetTopicByID(w http.ResponseWriter, r *http.Request) {
 	topicID, err := strconv.Atoi(mux.Vars(r)["topicId"])
 	if err != nil {
@@ -153,7 +149,7 @@ func (c *ForumControllers) GetTopicByID(w http.ResponseWriter, r *http.Request) 
 	helper.WriteSuccessResponse(w, http.StatusOK, topic)
 }
 
-// UpdateTopic met à jour un topic
+// Met à jour un topic
 func (c *ForumControllers) UpdateTopic(w http.ResponseWriter, r *http.Request) {
 	userID := r.Header.Get("X-User-ID")
 	if userID == "" {
@@ -192,7 +188,7 @@ func (c *ForumControllers) UpdateTopic(w http.ResponseWriter, r *http.Request) {
 	helper.WriteSuccessResponse(w, http.StatusOK, topic)
 }
 
-// DeleteTopic supprime un topic
+// Supprime un topic
 func (c *ForumControllers) DeleteTopic(w http.ResponseWriter, r *http.Request) {
 	userID := r.Header.Get("X-User-ID")
 	if userID == "" {
@@ -225,9 +221,7 @@ func (c *ForumControllers) DeleteTopic(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusNoContent)
 }
 
-// COMMENTS
-
-// CreateComment crée un nouveau commentaire
+// Crée un nouveau commentaire
 func (c *ForumControllers) CreateComment(w http.ResponseWriter, r *http.Request) {
 	userID := r.Header.Get("X-User-ID")
 	if userID == "" {
@@ -265,7 +259,7 @@ func (c *ForumControllers) CreateComment(w http.ResponseWriter, r *http.Request)
 	helper.WriteSuccessResponse(w, http.StatusCreated, comment)
 }
 
-// GetCommentsByTopic récupère les commentaires d'un topic
+// Récupère les commentaires d'un topic
 func (c *ForumControllers) GetCommentsByTopic(w http.ResponseWriter, r *http.Request) {
 	topicID, err := strconv.Atoi(mux.Vars(r)["topicId"])
 	if err != nil {
@@ -282,7 +276,7 @@ func (c *ForumControllers) GetCommentsByTopic(w http.ResponseWriter, r *http.Req
 	helper.WriteSuccessResponse(w, http.StatusOK, comments)
 }
 
-// UpdateComment met à jour un commentaire
+// Met à jour un commentaire
 func (c *ForumControllers) UpdateComment(w http.ResponseWriter, r *http.Request) {
 	userID := r.Header.Get("X-User-ID")
 	if userID == "" {
@@ -324,7 +318,7 @@ func (c *ForumControllers) UpdateComment(w http.ResponseWriter, r *http.Request)
 	helper.WriteSuccessResponse(w, http.StatusOK, comment)
 }
 
-// DeleteComment supprime un commentaire
+// Supprime un commentaire
 func (c *ForumControllers) DeleteComment(w http.ResponseWriter, r *http.Request) {
 	userID := r.Header.Get("X-User-ID")
 	if userID == "" {
@@ -357,9 +351,7 @@ func (c *ForumControllers) DeleteComment(w http.ResponseWriter, r *http.Request)
 	w.WriteHeader(http.StatusNoContent)
 }
 
-// LIKES
-
-// LikeTopic like un topic
+// Like un topic
 func (c *ForumControllers) LikeTopic(w http.ResponseWriter, r *http.Request) {
 	userID := r.Header.Get("X-User-ID")
 	if userID == "" {
@@ -388,7 +380,7 @@ func (c *ForumControllers) LikeTopic(w http.ResponseWriter, r *http.Request) {
 	helper.WriteSuccessResponse(w, http.StatusOK, map[string]string{"message": "Like ajouté/supprimé avec succès"})
 }
 
-// LikeComment like un commentaire
+// Like un commentaire
 func (c *ForumControllers) LikeComment(w http.ResponseWriter, r *http.Request) {
 	userID := r.Header.Get("X-User-ID")
 	if userID == "" {
@@ -417,9 +409,7 @@ func (c *ForumControllers) LikeComment(w http.ResponseWriter, r *http.Request) {
 	helper.WriteSuccessResponse(w, http.StatusOK, map[string]string{"message": "Like ajouté/supprimé avec succès"})
 }
 
-// SEARCH
-
-// Search recherche des topics
+// Recherche des topics
 func (c *ForumControllers) Search(w http.ResponseWriter, r *http.Request) {
 	query := r.URL.Query().Get("q")
 	if query == "" {
@@ -439,7 +429,7 @@ func (c *ForumControllers) Search(w http.ResponseWriter, r *http.Request) {
 	helper.WriteSuccessResponse(w, http.StatusOK, topics)
 }
 
-// GetPopularTopics récupère les topics populaires
+// Récupère les topics populaires
 func (c *ForumControllers) GetPopularTopics(w http.ResponseWriter, r *http.Request) {
 	limit, _ := strconv.Atoi(r.URL.Query().Get("limit"))
 
