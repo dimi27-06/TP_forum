@@ -1,0 +1,71 @@
+{{/*
+  layout.html = l'habillage commun à TOUTES les pages du site.
+  On y met l'entête, le menu et le pied de page. Le contenu propre à chaque page
+  vient se glisser à l'endroit du {{block "content"}} plus bas.
+  Les  ...  sont des commentaires de template : ils n'apparaissent PAS dans la page affichée.
+*/}}
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8"> <!-- UTF-8 : pour que les accents s'affichent correctement -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"> <!-- rend le site lisible sur mobile -->
+    <title>Forum Chasse &amp; Pêche</title>
+    <link rel="stylesheet" href="/static/css/style.css"> <!-- la feuille de style (couleurs, mise en page) -->
+</head>
+<body>
+
+<div class="site-header">
+    <div class="header-top">
+        <a href="/" class="logo">
+            <span class="logo-text">Forum Chasse &amp; Pêche</span>
+        </a>
+        <div class="header-user">
+            {{/* .Claims contient l'utilisateur connecté. S'il existe, on affiche son espace ; sinon les liens de connexion. */}}
+            {{if .Claims}}
+                Connecté : <strong>{{.Claims.Username}}</strong>
+                {{/* On n'affiche le badge [Admin] que si le rôle vaut "admin" */}}
+                {{if eq .Claims.Role "admin"}} <span style="color:#a8e8a8">[Admin]</span>{{end}}
+                &nbsp;|&nbsp;
+                <a href="/me">Mon profil</a>
+                &nbsp;|&nbsp;
+                <form action="/logout" method="POST" style="display:inline">
+                    <button type="submit" style="background:none;border:none;color:#c8e0c8;cursor:pointer;font-size:12px;text-decoration:underline;padding:0;">Déconnexion</button>
+                </form>
+            {{else}}
+                {{/* Visiteur non connecté */}}
+                <a href="/login">Connexion</a> | <a href="/register">Inscription</a>
+            {{end}}
+        </div>
+    </div>
+
+    {{/* Le menu principal de navigation */}}
+    <nav class="main-nav">
+        <ul>
+            <li><a href="/">Accueil</a></li>
+            <li><a href="/threads?tag=Chasse">Chasse</a></li>
+            <li><a href="/threads?tag=Pêche">Pêche</a></li>
+            <li><a href="/threads">Tous les fils</a></li>
+            {{/* Le lien "Nouveau fil" n'apparait que pour les membres connectés */}}
+            {{if .Claims}}
+            <li><a href="/threads/new">Nouveau fil</a></li>
+            {{end}}
+            {{/* Le lien Administration n'apparait que pour les admins */}}
+            {{if .Claims}}{{if eq .Claims.Role "admin"}}
+            <li><a href="/admin">Administration</a></li>
+            {{end}}{{end}}
+        </ul>
+    </nav>
+</div>
+
+<div class="container">
+    {{/* C'est ICI que le contenu de chaque page vient se placer */}}
+    {{block "content" .}}{{end}}
+</div>
+
+<div class="site-footer">
+    Forum Chasse &amp; Pêche &copy; 2026 &mdash; Le forum des passionnés de la nature
+</div>
+
+<script src="/static/js/main.js"></script> <!-- le code JavaScript (ex: les boutons like) -->
+</body>
+</html>
