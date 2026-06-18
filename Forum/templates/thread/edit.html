@@ -1,0 +1,62 @@
+{{template "layout.html" .}}
+{{define "content"}}
+
+{{/* Formulaire de modification d'un fil existant. Très proche de create.html,
+     mais les champs sont déjà remplis avec les valeurs actuelles du fil. */}}
+{{if .Error}}
+<div class="alert alert-error">Attention: {{.Error}}</div>
+{{end}}
+
+{{if .Thread}}
+<div class="form-box">
+    <div class="form-box-header">Modifier le fil de discussion</div>
+    <form action="/threads/{{.Thread.ID}}/edit" method="POST">
+        <div class="form-box-body">
+
+            <div class="form-group">
+                <label for="title">Titre *</label>
+                {{/* value pré-rempli avec le titre actuel */}}
+                <input type="text" id="title" name="title" value="{{.Thread.Title}}" required maxlength="200">
+            </div>
+
+            <div class="form-group">
+                <label for="content">Message *</label>
+                <textarea id="content" name="content" required style="min-height:120px">{{.Thread.Content}}</textarea>
+            </div>
+
+            {{/* Le choix du statut n'est proposé qu'aux admins */}}
+            {{if eq $.Claims.Role "admin"}}
+            <div class="form-group">
+                <label for="status">Statut</label>
+                <select id="status" name="status">
+                    <option value="open"     {{if eq .Thread.Status "open"}}selected{{end}}>Ouvert</option>
+                    <option value="closed"   {{if eq .Thread.Status "closed"}}selected{{end}}>Fermé</option>
+                    <option value="archived" {{if eq .Thread.Status "archived"}}selected{{end}}>Archivé</option>
+                </select>
+            </div>
+            {{end}}
+
+            <div class="form-group">
+                <label>Tags</label>
+                <div class="tags-grid">
+                    {{range .Tags}}
+                    <label class="tag-check-label">
+                        {{/* On coche d'avance les tags que le fil possède déjà :
+                             pour chaque tag du fil, si son nom correspond, on met "checked" */}}
+                        <input type="checkbox" name="tags" value="{{.Name}}"
+                            {{range $.Thread.Tags}}{{if eq .Name $.Name}}checked{{end}}{{end}}> {{.Name}}
+                    </label>
+                    {{end}}
+                </div>
+            </div>
+
+        </div>
+        <div class="form-actions">
+            <button type="submit" class="btn btn-primary">Enregistrer</button>
+            <a href="/threads/{{.Thread.ID}}" class="btn btn-secondary">Annuler</a>
+        </div>
+    </form>
+</div>
+{{end}}
+
+{{end}}

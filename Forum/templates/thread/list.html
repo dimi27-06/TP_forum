@@ -1,0 +1,127 @@
+{{template "layout.html" .}}
+{{define "content"}}
+
+{{/* Boutons catégories principales */}}
+{{/* La classe "active" est ajoutée au bouton correspondant au tag actuellement sélectionné */}}
+<div class="categories-bar">
+    <a href="/threads?tag=Chasse" class="cat-btn {{if eq .Query.Tag "Chasse"}}active{{end}}">Section Chasse</a>
+    <a href="/threads?tag=Pêche" class="cat-btn {{if eq .Query.Tag "Pêche"}}active{{end}}">Section Pêche</a>
+    <a href="/threads" class="cat-btn {{if eq .Query.Tag ""}}{{if eq .Query.Search ""}}active{{end}}{{end}}">Tout voir</a>
+    {{if .Claims}}
+    <a href="/threads/new" class="cat-btn" style="background:var(--vert-moyen);color:#fff;flex:0.5">Nouveau fil</a>
+    {{end}}
+</div>
+
+{{/* Barre de filtres */}}
+{{/* Ce formulaire est en GET : les choix se retrouvent dans l'URL (?search=...&tag=...), donc partageables */}}
+<form method="GET" action="/threads" class="filter-box">
+    <label>Recherche :</label>
+    <input type="text" name="search" value="{{.Query.Search}}" placeholder="Titre ou tag..." style="width:200px">
+
+    <label>Section :</label>
+    <select name="tag">
+        <option value="">-- Toutes --</option>
+        {{/* On remplit la liste déroulante avec tous les tags existants */}}
+        {{range .Tags}}
+        {{/* $.Query : le $ permet de remonter aux données globales depuis l'intérieur du range. "selected" = option pré-choisie */}}
+        <option value="{{.Name}}" {{if eq $.Query.Tag .Name}}selected{{end}}>{{.Name}}</option>
+        {{end}}
+    </select>
+
+    <label>Tri :</label>
+    <select name="sort">
+        <option value="recent"  {{if eq .Query.Sort "recent"}}selected{{end}}>Plus récents</option>
+        <option value="oldest"  {{if eq .Query.Sort "oldest"}}selected{{end}}>Plus anciens</option>
+    </select>
+
+    <label>Afficher :</label>
+    <select name="limit">
+        <option value="10" {{if eq .Query.Limit 10}}selected{{end}}>10 par page</option>
+        <option value="20" {{if eq .Query.Limit 20}}selected{{end}}>20 par page</option>
+        <option value="30" {{if eq .Query.Limit 30}}selected{{end}}>30 par page</option>
+        <option value="0"  {{if eq .Query.Limit 0}}selected{{end}}>Tout afficher</option>
+    </select>
+
+    <button type="submit" class="btn btn-primary btn-sm">Filtrer</button>
+    <a href="/threads" class="btn btn-secondary btn-sm">Réinitialiser</a>
+</form>
+
+{{if .Error}}
+<div class="alert alert-error">{{.Error}}</div>
+{{end}}
+
+{{/* Tableau des fils */}}
+<table class="forum-table">
+    <tr class="forum-table-header">
+        <td width="30"></td>
+        <td>Sujet</td>
+        <td class="col-count">Rép.</td>
+        <td class="col-author">Auteur</td>
+        <td class="col-date">Date</td>
+    </tr>
+
+    {{/* Si on a au moins un fil, on affiche la liste ; sinon on affiche un message (plus bas dans le {{else}}) */}}
+    {{if .Threads}}
+    {{range .Threads}}
+    <tr class="thread-row">
+        <td class="thread-icon">
+        </td>
+        <td class="thread-info">
+            <div>
+                <a href="/threads/{{.ID}}" class="thread-title-link">{{.Title}}</a>
+                {{if eq .Status "closed"}}
+                <span class="thread-status-closed">Fermé</span>
+                {{end}}
+            </div>
+            <div class="thread-desc">
+                <span class="thread-tags-inline">
+                    {{/* On liste les tags du fil, chacun cliquable pour filtrer dessus */}}
+                    {{range .Tags}}<a href="/threads?tag={{.Name}}" class="tag-small">{{.Name}}</a>{{end}}
+                </span>
+            </div>
+        </td>
+        <td class="col-count">{{.MsgCount}}</td>
+        <td class="col-author">{{.Author}}</td>
+        <td class="col-date">{{.CreatedAt.Format "02/01/06"}}</td>
+    </tr>
+    {{end}}
+    {{else}}
+    <tr>
+        <td colspan="5" class="empty-msg">
+            Aucun fil de discussion trouvé.
+            {{if .Claims}}<br><a href="/threads/new">Créer le premier fil</a>{{end}}
+        </td>
+    </tr>
+    {{end}}
+</table>
+
+{{/* Pagination */}}
+{{/* On n'affiche les numéros de page que s'il y a plus d'une page */}}
+{{if .Meta}}
+{{if gt .Meta.TotalPages 1}}
+<div class="pagination">
+    {{/* Bouton "précédent" seulement s'il existe une page avant */}}
+    {{if .Meta.HasPrev}}
+    <a href="?page={{sub .Meta.Page 1}}&limit={{.Meta.Limit}}&sort={{.Query.Sort}}&tag={{.Query.Tag}}&search={{.Query.Search}}" class="page-link">&laquo; Préc.</a>
+    {{end}}
+
+    {{/* On range les données globales dans des variables ($q, $meta) pour les réutiliser dans la boucle */}}
+    {{$q := .Query}}
+    {{$meta := .Meta}}
+    {{/* seq fabrique 1,2,3...TotalPages : un lien par page */}}
+    {{range seq .Meta.TotalPages}}
+    <a href="?page={{.}}&limit={{$meta.Limit}}&sort={{$q.Sort}}&tag={{$q.Tag}}&search={{$q.Search}}"
+       class="page-link {{if eq . $meta.Page}}current{{end}}">{{.}}</a>
+    {{end}}
+
+    {{/* Bouton "suivant" seulement s'il existe une page après */}}
+    {{if .Meta.HasNext}}
+    <a href="?page={{add .Meta.Page 1}}&limit={{.Meta.Limit}}&sort={{.Query.Sort}}&tag={{.Query.Tag}}&search={{.Query.Search}}" class="page-link">Suiv. &raquo;</a>
+    {{end}}
+
+    &nbsp; {{.Meta.Total}} sujet(s) au total
+</div>
+{{end}}
+{{end}}
+
+{{end}}

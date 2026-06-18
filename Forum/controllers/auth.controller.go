@@ -13,16 +13,16 @@ type AuthControllers struct {
 	service *services.AuthService
 }
 
-// AuthProductController initialise le controller d'authentification avec son service.
+// Controle l'authentification
 func AuthProductController(authService *services.AuthService) *AuthControllers {
 	return &AuthControllers{service: authService}
 }
 
-// Login gere la connexion d'un utilisateur et retourne un token JWT si les identifiants sont valides.
+// verifie les identifiants de connexion et renvoie un token si ils sont valides.
 func (c *AuthControllers) Login(w http.ResponseWriter, r *http.Request) {
 	var data dto.LoginRequestDto
 
-	// On decode le JSON envoye dans le body de la requete.
+	// On decode le JSON envoyé dans le body de la requete.
 	if err := json.NewDecoder(r.Body).Decode(&data); err != nil {
 		helper.WriteError(w, http.StatusBadRequest, "JSON invalide")
 		return
@@ -35,11 +35,11 @@ func (c *AuthControllers) Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Si tout est valide, on renvoie le token au client.
+	// Si tout est valide renvoie le token au client.
 	helper.WriteJSON(w, http.StatusOK, response)
 }
 
-// Register cree un compte utilisateur et connecte automatiquement la personne.
+// Crée un utilisateur et connecte l'utilisateur automatiquement après l'inscription.
 func (c *AuthControllers) Register(w http.ResponseWriter, r *http.Request) {
 	var data dto.RegisterRequestDto
 
@@ -57,7 +57,7 @@ func (c *AuthControllers) Register(w http.ResponseWriter, r *http.Request) {
 	helper.WriteJSON(w, http.StatusCreated, response)
 }
 
-// Me retourne les informations de l'utilisateur authentifie.
+// Retourne les informations de l'utilisateur authentifie.
 func (c *AuthControllers) Me(w http.ResponseWriter, r *http.Request) {
 	// Le middleware d'authentification ajoute les claims JWT dans le contexte.
 	claims, ok := r.Context().Value("user").(*auth.Claims)

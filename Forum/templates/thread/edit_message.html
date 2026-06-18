@@ -1,0 +1,25 @@
+{{template "layout.html" .}}
+{{define "content"}}
+
+{{/* Petit formulaire pour modifier le texte d'un message déjà posté. */}}
+{{if .Message}}
+<div class="form-box" style="max-width:700px">
+    <div class="form-box-header">Modifier le message</div>
+    <form action="/messages/{{.Message.ID}}/edit" method="POST">
+        <div class="form-box-body">
+            <div class="form-group">
+                <label for="content">Message *</label>
+                {{/* La zone de texte contient déjà le message actuel, prêt à être corrigé */}}
+                <textarea id="content" name="content" required style="min-height:100px">{{.Message.Content}}</textarea>
+            </div>
+        </div>
+        <div class="form-actions">
+            <button type="submit" class="btn btn-primary">Enregistrer</button>
+            {{/* Annuler renvoie vers le fil d'origine du message */}}
+            <a href="/threads/{{.Message.ThreadID}}" class="btn btn-secondary">Annuler</a>
+        </div>
+    </form>
+</div>
+{{end}}
+
+{{end}}
