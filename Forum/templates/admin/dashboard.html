@@ -1,0 +1,73 @@
+{{template "layout.html" .}}
+{{define "content"}}
+{{/* Tableau de bord admin : liste tous les membres avec un bouton pour bannir/débannir. */}}
+
+<div class="form-box">
+    <div class="form-box-header">Tableau de bord - Administration</div>
+    <div class="form-box-body" style="padding:0">
+
+        <table class="admin-table">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Pseudo</th>
+                    <th>Email</th>
+                    <th>Rôle</th>
+                    <th>Statut</th>
+                    <th>Inscription</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+            {{/* {{range .Users}} = on répète la ligne suivante pour CHAQUE utilisateur de la liste */}}
+            {{range .Users}}
+            {{/* Si l'utilisateur est banni, on ajoute une classe pour griser/colorer la ligne */}}
+            <tr {{if .Banned}}class="banned-row"{{end}}>
+                <td>{{.ID}}</td>
+                <td><strong>{{.Username}}</strong></td>
+                <td>{{.Email}}</td>
+                <td>
+                    {{if eq .Role "admin"}}
+                    <span class="badge-admin">Admin</span>
+                    {{else}}
+                    <span class="badge-user">Membre</span>
+                    {{end}}
+                </td>
+                <td>
+                    {{if .Banned}}
+                    <span class="badge-banned">Banni</span>
+                    {{else}}
+                    <span class="badge-active">Actif</span>
+                    {{end}}
+                </td>
+                {{/* .Format "02/01/2006" : la façon dont Go affiche une date (jour/mois/année) */}}
+                <td>{{.CreatedAt.Format "02/01/2006"}}</td>
+                <td>
+                    {{if .Banned}}
+                    {{/* Membre banni -> bouton pour le débannir */}}
+                    <form action="/admin/users/{{.ID}}/unban" method="POST" style="display:inline">
+                        <button type="submit" class="btn btn-secondary btn-sm">Débannir</button>
+                    </form>
+                    {{else if ne .Role "admin"}}
+                    {{/* Membre normal actif -> bouton pour le bannir (avec une demande de confirmation) */}}
+                    <form action="/admin/users/{{.ID}}/ban" method="POST" style="display:inline"
+                          onsubmit="return confirm('Bannir {{.Username}} ?')">
+                        <button type="submit" class="btn btn-danger btn-sm">Bannir</button>
+                    </form>
+                    {{else}}
+                    {{/* C'est un admin : on ne propose pas de le bannir */}}
+                    <em style="font-size:11px;color:#999">Aucun</em>
+                    {{end}}
+                </td>
+            </tr>
+            {{else}}
+            {{/* Ce {{else}} d'un {{range}} s'affiche seulement si la liste est vide */}}
+            <tr><td colspan="7" class="empty-msg">Aucun utilisateur.</td></tr>
+            {{end}}
+            </tbody>
+        </table>
+
+    </div>
+</div>
+
+{{end}}

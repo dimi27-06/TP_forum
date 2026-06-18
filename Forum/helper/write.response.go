@@ -16,12 +16,12 @@ func WriteError(w http.ResponseWriter, status int, message string) {
 	WriteJSON(w, status, dto.ApiError{Status: status, Error: message})
 }
 
-// WriteErrorResponse écrit une réponse d'erreur
+// la fonction renvoie une reponse erreur
 func WriteErrorResponse(w http.ResponseWriter, status int, message string) {
 	WriteError(w, status, message)
 }
 
-// WriteSuccessResponse écrit une réponse de succès
+// la fonction renvoie une reponse ok
 func WriteSuccessResponse(w http.ResponseWriter, status int, data any) {
 	WriteJSON(w, status, data)
 }
