@@ -11,7 +11,7 @@ import (
 // On ne stocke JAMAIS le vrai mot de passe en base, seulement cette empreinte.
 // Comme ça, même si quelqu'un vole la base, il ne voit pas les mots de passe.
 func HashPassword(password string) string {
-	h := sha512.New()         // on prépare la machine à fabriquer l'empreinte
+	h := sha512.New()        // on prépare la machine à fabriquer l'empreinte
 	h.Write([]byte(password)) // on lui donne le mot de passe à digérer
 	// On renvoie l'empreinte sous forme de texte (en hexadécimal, d'où le %x).
 	return fmt.Sprintf("%x", h.Sum(nil))

@@ -14,11 +14,11 @@ import (
 
 // Claims = les informations que l'on glisse à l'intérieur du jeton.
 type Claims struct {
-	UserID               int    `json:"user_id"`  // l'identifiant de l'utilisateur
-	Username             string `json:"username"` // son pseudo
-	Role                 string `json:"role"`     // son rôle : "user" ou "admin"
-	Banned               bool   `json:"banned"`   // est-il banni ou pas
-	jwt.RegisteredClaims        // champs standards fournis par la librairie (date, etc.)
+	UserID   int    `json:"user_id"`  // l'identifiant de l'utilisateur
+	Username string `json:"username"` // son pseudo
+	Role     string `json:"role"`     // son rôle : "user" ou "admin"
+	Banned   bool   `json:"banned"`   // est-il banni ou pas
+	jwt.RegisteredClaims               // champs standards fournis par la librairie (date, etc.)
 }
 
 // getSecret renvoie la clé secrète qui sert à signer les jetons.
@@ -44,7 +44,7 @@ func GenerateToken(userID int, username, role string, banned bool) (string, erro
 		RegisteredClaims: jwt.RegisteredClaims{
 			Subject:   username,
 			Issuer:    "forum",
-			IssuedAt:  jwt.NewNumericDate(now),                     // date de création
+			IssuedAt:  jwt.NewNumericDate(now),                  // date de création
 			ExpiresAt: jwt.NewNumericDate(now.Add(24 * time.Hour)), // expire au bout de 24h
 		},
 	}

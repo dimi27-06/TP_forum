@@ -25,7 +25,7 @@ func InitAuthService(userRepo *repositories.UserRepository) *AuthService {
 func (s *AuthService) Register(req dto.RegisterRequest) error {
 	// On nettoie les entrées : on enlève les espaces inutiles et on met l'email en minuscules.
 	req.Username = strings.TrimSpace(req.Username)
-	req.Email = strings.TrimSpace(strings.ToLower(req.Email))
+	req.Email    = strings.TrimSpace(strings.ToLower(req.Email))
 
 	// Vérification 1 : aucun champ ne doit être vide.
 	if req.Username == "" || req.Email == "" || req.Password == "" {

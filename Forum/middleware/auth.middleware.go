@@ -3,7 +3,7 @@
 package middleware
 
 import (
-	"context" // pour transporter des infos d'une étape à l'autre pendant une requête
+	"context"   // pour transporter des infos d'une étape à l'autre pendant une requête
 	"forum/auth"
 	"net/http"
 	"strings"

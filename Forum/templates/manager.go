@@ -58,7 +58,6 @@ func (m *Manager) Render(w http.ResponseWriter, r *http.Request, name string, da
 		"Claims": claims,
 	}
 
-	// Merge provided data map
 	// On ajoute les données spécifiques à la page (la liste des fils, un message d'erreur, etc.).
 	if d, ok := data.(map[string]interface{}); ok {
 		for k, v := range d {
