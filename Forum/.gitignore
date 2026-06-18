@@ -1,14 +1,4 @@
 .env
-.gocache/
-
-# Go build outputs
+*.db
+vendor/
 *.exe
-*.test
-*.out
-
-# Editor and OS files
-.idea/
-.vscode/
-*.swp
-Thumbs.db
-.DS_Store
