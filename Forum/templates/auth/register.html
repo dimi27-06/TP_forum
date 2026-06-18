@@ -1,0 +1,93 @@
+{{template "layout.html" .}}
+{{define "content"}}
+<div class="auth-container">
+
+    {{/* Message d'erreur si l'inscription échoue (pseudo pris, mots de passe différents...) */}}
+    {{if .Error}}
+    <div class="alert alert-error">Attention: {{.Error}}</div>
+    {{end}}
+
+    <div class="form-box">
+        <div class="form-box-header">Créer un compte - Forum Chasse &amp; Pêche</div>
+        <form action="/register" method="POST">
+            <div class="form-box-body">
+
+                <div class="form-group">
+                    <label for="username">Pseudo *</label>
+                    <div>
+                        {{/* On garde la valeur déjà saisie en cas d'erreur (.Form vient du serveur) */}}
+                        <input type="text" id="username" name="username"
+                               value="{{if .Form}}{{.Form.Username}}{{end}}"
+                               placeholder="Votre pseudo sur le forum" required maxlength="30">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="email">Email *</label>
+                    <div>
+                        {{/* type="email" : le navigateur vérifie que ça ressemble à une adresse email */}}
+                        <input type="email" id="email" name="email"
+                               value="{{if .Form}}{{.Form.Email}}{{end}}"
+                               placeholder="votre@email.com" required>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="password">Mot de passe *</label>
+                    <div>
+                        <input type="password" id="password" name="password"
+                               placeholder="12 car. min." required>
+                        {{/* Petits indices mis à jour en direct par le JavaScript plus bas */}}
+                        <div class="password-hints">
+                            <span id="hint-len">Non - 12 caractères minimum</span>
+                            <span id="hint-upper">Non - Au moins une majuscule</span>
+                            <span id="hint-special">Non - Au moins un caractère spécial (!@#...)</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="confirm">Confirmer *</label>
+                    <div>
+                        {{/* On redemande le mot de passe pour éviter une faute de frappe */}}
+                        <input type="password" id="confirm" name="confirm"
+                               placeholder="Répétez le mot de passe" required>
+                    </div>
+                </div>
+
+            </div>
+            <div class="form-actions">
+                <button type="submit" class="btn btn-primary">Créer mon compte</button>
+                &nbsp; <a href="/login">J'ai déjà un compte</a>
+            </div>
+        </form>
+    </div>
+
+</div>
+
+<script>
+// Ce petit script vérifie le mot de passe pendant que l'utilisateur tape,
+// et met à jour les indices en temps réel. C'est juste un confort visuel :
+// la vraie vérification est aussi refaite côté serveur (on ne fait jamais confiance au navigateur seul).
+const pwd = document.getElementById('password');
+const hLen = document.getElementById('hint-len');
+const hUp = document.getElementById('hint-upper');
+const hSp = document.getElementById('hint-special');
+
+// "input" se déclenche à chaque caractère tapé dans le champ mot de passe.
+pwd.addEventListener('input', function() {
+    var v = this.value;
+    var okLen = v.length >= 12;          // au moins 12 caractères
+    var okUp  = /[A-Z]/.test(v);         // contient une majuscule
+    var okSp  = /[^a-zA-Z0-9]/.test(v);  // contient un caractère qui n'est ni lettre ni chiffre
+
+    // Pour chaque règle, on affiche "OK" si c'est bon, "Non" sinon, et on change la couleur via la classe "ok".
+    hLen.textContent = (okLen ? 'OK' : 'Non') + ' 12 caractères minimum';
+    hLen.className = okLen ? 'ok' : '';
+    hUp.textContent  = (okUp  ? 'OK' : 'Non') + ' Au moins une majuscule';
+    hUp.className  = okUp  ? 'ok' : '';
+    hSp.textContent = (okSp  ? 'OK' : 'Non') + ' Au moins un caractère spécial (!@#...)';
+    hSp.className = okSp  ? 'ok' : '';
+});
+</script>
+{{end}}
