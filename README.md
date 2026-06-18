@@ -1,92 +1,110 @@
-# TP_forum
-# Forum Chasse & Pêche
+# TP Forum
 
-Plateforme communautaire de discussion dédiée à la chasse et à la pêche.
+Forum de discussion autour de la chasse et de la peche.
 
-## Équipe
+## Equipe
 
 - Dimitri Manfredonia
 - Matthieu TOLISANO
 
-## Technologies
+## Stack
 
-- **Langage :** Go 1.22
-- **Base de données :** SQLite (via `mattn/go-sqlite3`)
+- **Langage :** Go 1.24+
+- **Base de donnees :** MySQL
+- **Driver SQL :** `github.com/go-sql-driver/mysql`
 - **Routeur :** Gorilla Mux
 - **Authentification :** JWT (HS256, `golang-jwt/jwt`)
-- **Rendu :** html/template (SSR)
-- **Frontend :** HTML + CSS + Vanilla JS
+- **Rendu :** `html/template` (SSR)
+- **Frontend :** HTML, CSS, Vanilla JS
 
-## Prérequis
+## Prerequis
 
-- Go 1.22+
-- GCC (requis par `go-sqlite3` pour la compilation CGO)
+- Go 1.24+
+- MySQL 8+ ou compatible
+
+## Configuration
+
+Le projet lit un fichier `.env` a la racine du dossier `Forum/`.
+
+Variables principales :
+
+- `PORT` : port HTTP du serveur
+- `JWT_SECRET` : cle secrete pour les tokens JWT
+- `DB_DSN` : chaine de connexion MySQL
+
+Exemple fourni dans `Forum/.env.example` :
+
+```env
+PORT=8080
+JWT_SECRET=change_this_secret_key_in_production
+DB_DSN=root:password@tcp(127.0.0.1:3306)/forum?parseTime=true&charset=utf8mb4&collation=utf8mb4_unicode_ci&loc=Local
+```
+
+## Base De Donnees
+
+Le schema MySQL est defini dans `Forum/migration/migration.sql`.
+
+Le jeu de donnees de test est dans `Forum/migration/script.sql`.
 
 ## Installation
 
 ```bash
-# Cloner le dépôt
-git clone <url-du-repo>
-cd forum
+# Se placer dans le projet
+cd Forum
 
 # Copier la configuration
 cp .env.example .env
-# Éditer .env si nécessaire (JWT_SECRET, PORT, DB_PATH)
 
-# Télécharger les dépendances
+# Installer les dependances
 go mod tidy
 
+# Creer la base et les tables dans MySQL
+mysql -u root -p < migration/migration.sql
+
+# Optionnel : charger les donnees de test
+mysql -u root -p < migration/script.sql
+
 # Lancer le serveur
-go run main.go
+go run .
 ```
 
-Le serveur démarre sur **http://localhost:8080**
+Le serveur demarre sur `http://localhost:8080`.
 
-La base de données est créée automatiquement au premier démarrage avec des données de test.
+## Comptes De Test
 
-## Comptes de test
+Le script de test recharge plusieurs comptes, dont :
 
-| Utilisateur | Email | Mot de passe | Rôle |
-|---|---|---|---|
-| admin | admin@forum.fr | *Admin1234!* | admin |
-| chasseur42 | chasseur42@forum.fr | *Admin1234!* | user |
-| pecheur_du_sud | pecheur@forum.fr | *Admin1234!* | user |
+- `admin` / `Admin1234!`
+- `RenardRouge` / `Admin1234!`
+- `PecheurDuSud` / `Admin1234!`
 
-> Pour créer votre propre compte, utilisez le formulaire d'inscription.
-> Mot de passe requis : 12 caractères minimum, 1 majuscule, 1 caractère spécial.
+## Structure Du Projet
 
-## Structure du projet
-
-```
-forum/
-├── main.go              # Point d'entrée
-├── app/app.go           # Assemblage des dépendances
-├── config/              # Chargement .env, connexion DB
-├── auth/                # JWT, hash SHA-512, validation
-├── middleware/          # Auth, rôles
-├── router/              # Définition des routes
-├── controllers/         # Réception HTTP, validation
-├── services/            # Logique métier
-├── repositories/        # Accès SQL
-├── models/              # Structs Go
-├── dto/                 # Objets de transfert
-├── templates/           # Pages HTML (SSR)
-├── static/              # CSS, JS, images
-├── database/            # Migration auto
-└── migration/           # Scripts SQL de référence
+```text
+Forum/
+|-- main.go
+|-- app/
+|-- config/
+|-- auth/
+|-- middleware/
+|-- router/
+|-- controllers/
+|-- services/
+|-- repositories/
+|-- models/
+|-- dto/
+|-- templates/
+|-- static/
+`-- migration/
 ```
 
-## Fonctionnalités
+## Fonctionnalites
 
-- FT-1 : Inscription (username unique, email unique, SHA-512, règles mot de passe)
-- FT-2 : Connexion par username ou email + JWT
-- FT-3 : Création de fil de discussion avec tags et statut
-- FT-4 : Consultation des fils (open/closed visibles, archived masqués)
-- FT-5 : Publication de messages dans les fils ouverts
-- FT-6 : Like / Dislike sur les messages (score de popularité)
-- FT-7 : Modification et suppression (propriétaire ou admin)
-- FT-8 : Tri des messages (récent, ancien, popularité)
-- FT-9 : Pagination (10 / 20 / 30 / tout)
-- FT-10 : Filtrage par tag/catégorie
-- FT-11 : Recherche par titre ou tag
-- FT-12 : Dashboard admin (ban/unban, statut des fils, suppression)
+- Inscription avec username et email uniques
+- Connexion avec JWT
+- Creation et consultation de fils de discussion
+- Messages dans les fils ouverts
+- Like / dislike sur les messages
+- Edition et suppression par proprietaire ou admin
+- Tri, pagination et filtrage
+- Dashboard admin pour moderer les contenus
