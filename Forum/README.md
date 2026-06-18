@@ -1,86 +1,110 @@
-# Forum Chasse & Peche
+# TP Forum
 
-Plateforme de discussion dédiée à la chasse et à la pêche, avec sujets, réponses, tags, réactions et espace admin.
+Forum de discussion autour de la chasse et de la peche.
 
-## Équipe
+## Equipe
 
-- Dimi
-- Matthieu Tolisano
+- Dimitri Manfredonia
+- Matthieu TOLISANO
 
-## Tech
+## Stack
 
-- Go 1.24
-- MySQL
-- Gorilla Mux
-- JWT
-- `html/template`
-- HTML, CSS, JavaScript
+- **Langage :** Go 1.24+
+- **Base de donnees :** MySQL
+- **Driver SQL :** `github.com/go-sql-driver/mysql`
+- **Routeur :** Gorilla Mux
+- **Authentification :** JWT (HS256, `golang-jwt/jwt`)
+- **Rendu :** `html/template` (SSR)
+- **Frontend :** HTML, CSS, Vanilla JS
 
-## Prérequis
+## Prerequis
 
 - Go 1.24+
 - MySQL 8+ ou compatible
-- Un client SQL comme DBeaver si besoin
 
-## Mise en route
+## Configuration
+
+Le projet lit un fichier `.env` a la racine du dossier `Forum/`.
+
+Variables principales :
+
+- `PORT` : port HTTP du serveur
+- `JWT_SECRET` : cle secrete pour les tokens JWT
+- `DB_DSN` : chaine de connexion MySQL
+
+Exemple fourni dans `Forum/.env.example` :
+
+```env
+PORT=8080
+JWT_SECRET=change_this_secret_key_in_production
+DB_DSN=root:password@tcp(127.0.0.1:3306)/forum?parseTime=true&charset=utf8mb4&collation=utf8mb4_unicode_ci&loc=Local
+```
+
+## Base De Donnees
+
+Le schema MySQL est defini dans `Forum/migration/migration.sql`.
+
+Le jeu de donnees de test est dans `Forum/migration/script.sql`.
+
+## Installation
 
 ```bash
-git clone <url-du-repo>
-cd forum
+# Se placer dans le projet
+cd Forum
 
-copy .env.example .env
+# Copier la configuration
+cp .env.example .env
+
+# Installer les dependances
 go mod tidy
 
+# Creer la base et les tables dans MySQL
 mysql -u root -p < migration/migration.sql
+
+# Optionnel : charger les donnees de test
 mysql -u root -p < migration/script.sql
 
-go run main.go
+# Lancer le serveur
+go run .
 ```
 
-Le serveur tourne sur `http://localhost:8080`.
+Le serveur demarre sur `http://localhost:8080`.
 
-## Base de données
+## Comptes De Test
 
-- `migration/migration.sql` crée la base et les tables
-- `migration/script.sql` ajoute les données de départ
+Le script de test recharge plusieurs comptes, dont :
 
-Le seed contient 16 membres, 16 fils de discussion et au moins 2 réponses par fil.
+- `admin` / `Admin1234!`
+- `RenardRouge` / `Admin1234!`
+- `PecheurDuSud` / `Admin1234!`
 
-## Comptes de test
-
-| Utilisateur | Email | Mot de passe | Rôle |
-|---|---|---|---|
-| admin | admin@forum.fr | `Admin1234!` | admin |
-| chasseur42 | chasseur42@forum.fr | `Admin1234!` | user |
-| pecheur_du_sud | pecheur@forum.fr | `Admin1234!` | user |
-
-Pour créer un compte, passe par l’inscription. Le mot de passe doit faire au moins 12 caractères, avec une majuscule et un caractère spécial.
-
-## Structure
+## Structure Du Projet
 
 ```text
-forum/
-├── main.go
-├── app/
-├── auth/
-├── config/
-├── controllers/
-├── dto/
-├── middleware/
-├── migration/
-├── models/
-├── repositories/
-├── router/
-├── services/
-├── static/
-└── templates/
+Forum/
+|-- main.go
+|-- app/
+|-- config/
+|-- auth/
+|-- middleware/
+|-- router/
+|-- controllers/
+|-- services/
+|-- repositories/
+|-- models/
+|-- dto/
+|-- templates/
+|-- static/
+`-- migration/
 ```
 
-## Fonctionnalités
+## Fonctionnalites
 
-- Inscription et connexion
-- Création de fils avec tags
-- Lecture des fils et des réponses
-- Réactions like / dislike
-- Pagination, tri et recherche
-- Administration des utilisateurs et des fils
+- Inscription avec username et email uniques
+- Connexion avec JWT
+- Creation et consultation de fils de discussion
+- Messages dans les fils ouverts
+- Like / dislike sur les messages
+- Edition et suppression par proprietaire ou admin
+- Tri, pagination et filtrage
+- Dashboard admin pour moderer les contenus
