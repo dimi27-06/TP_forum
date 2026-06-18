@@ -2,50 +2,60 @@ package app
 
 import (
 	"database/sql"
-
-	"exemple_api/config"
-	"exemple_api/controllers"
-	"exemple_api/repositories"
-	"exemple_api/routers"
-	"exemple_api/services"
+	"forum/config"
+	"forum/controllers"
+	"forum/middleware"
+	"forum/repositories"
+	"forum/router"
+	"forum/services"
+	"forum/templates"
 
 	"github.com/gorilla/mux"
 )
 
 type App struct {
-	Db     *sql.DB
 	Router *mux.Router
+	db     *sql.DB
 }
 
 func InitApp() *App {
 	config.LoadEnv()
-
 	db := config.InitDB()
 
-	userRepository := repositories.InitUserRepository(db)
-	forumRepository := repositories.InitForumRepository(db)
+	userRepo := repositories.InitUserRepository(db)
+	tagRepo := repositories.InitTagRepository(db)
+	threadRepo := repositories.InitThreadRepository(db)
+	messageRepo := repositories.InitMessageRepository(db)
+	reactionRepo := repositories.InitReactionRepository(db)
 
-	authService := services.InitAuthService(userRepository)
-	forumService := services.InitForumService(forumRepository)
+	authService := services.InitAuthService(userRepo)
+	threadService := services.InitThreadService(threadRepo, tagRepo)
+	messageService := services.InitMessageService(messageRepo, threadRepo)
+	reactionService := services.InitReactionService(reactionRepo)
+	adminService := services.InitAdminService(userRepo, threadRepo)
 
-	authController := controllers.AuthProductController(authService)
-	forumController := controllers.InitForumControllers(forumService)
+	tmpl := templates.NewManager()
 
-	router := mux.NewRouter()
-	registerWebRoutes(router)
+	authCtrl := controllers.InitAuthController(authService, tmpl)
+	threadCtrl := controllers.InitThreadController(threadService, messageService, tmpl)
+	messageCtrl := controllers.InitMessageController(messageService, tmpl)
+	reactionCtrl := controllers.InitReactionController(reactionService)
+	adminCtrl := controllers.InitAdminController(adminService, threadService, messageService, tmpl)
 
-	apiRouter := router.PathPrefix("/api").Subrouter()
-	routers.AuthProductRoutes(apiRouter, authController)
-	routers.RegisterForumRoutes(apiRouter, forumController)
+	r := mux.NewRouter()
+	r.Use(middleware.LoadUser)
 
-	return &App{
-		Db:     db,
-		Router: router,
-	}
+	router.RegisterAssetRoutes(r)
+	router.RegisterAuthRoutes(r, authCtrl)
+	router.RegisterThreadRoutes(r, threadCtrl)
+	router.RegisterMessageRoutes(r, messageCtrl, reactionCtrl)
+	router.RegisterAdminRoutes(r, adminCtrl)
+
+	return &App{Router: r, db: db}
 }
 
 func (a *App) Close() {
-	if a.Db != nil {
-		a.Db.Close()
+	if a.db != nil {
+		a.db.Close()
 	}
 }
