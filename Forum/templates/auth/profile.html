@@ -1,0 +1,29 @@
+{{template "layout.html" .}}
+{{define "content"}}
+{{/* Page "Mon profil" : affiche les infos du compte connecté (lues dans le jeton .Claims). */}}
+<div class="form-box" style="max-width:500px">
+    <div class="form-box-header"> Mon profil</div>
+    <div class="form-box-body">
+        {{if .Claims}}
+        <table class="info-grid">
+            <tr><td>Pseudo</td><td><strong>{{.Claims.Username}}</strong></td></tr>
+            <tr><td>Rôle</td><td>
+                {{/* On affiche un badge différent selon le rôle */}}
+                {{if eq .Claims.Role "admin"}}
+                <span class="badge-admin">Administrateur</span>
+                {{else}}
+                <span class="badge-user">Membre</span>
+                {{end}}
+            </td></tr>
+            <tr><td>ID compte</td><td>#{{.Claims.UserID}}</td></tr>
+        </table>
+        {{end}}
+    </div>
+    <div class="form-actions">
+        <a href="/" class="btn btn-secondary">Retour au forum</a>
+        <form action="/logout" method="POST" style="display:inline">
+            <button type="submit" class="btn btn-danger btn-sm">Déconnexion</button>
+        </form>
+    </div>
+</div>
+{{end}}
